@@ -8,12 +8,48 @@ func init() {
 	Init("root:123456@tcp(172.17.0.1:3306)/blog_super?charset=utf8")
 }
 
+func TestInit(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			t.Log("init test ok", err)
+		}
+		Init("root:123456@tcp(172.17.0.1:3306)/blog_super?charset=utf8")
+	}()
+	Init("root:123456@tcp(1:3306)/blog_super?charset=utf8")
+}
+
 func TestUser(t *testing.T) {
-	users, err := GetUsers(&User{})
+	users, err := GetUsers(&User{ID: 0})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log("users:", users)
+}
+
+func TestUserByID(t *testing.T) {
+	users, err := GetUserWithID(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("users:", users)
+}
+func TestUserByPwd(t *testing.T) {
+	user, err := GetUserWithID(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = GetUserWithPwd(user.UserLogin, user.UserPass)
+	if err != nil {
+		// t.Fatal(err)
+		t.Log("login:", err)
+	}
+
+	_, err = GetUserWithPwd(user.UserLogin, "123")
+	if err == nil {
+		t.Fatal("password is error but return no error")
+	}
+	t.Log("users:", user)
 }
 
 func TestUserMeta(t *testing.T) {
@@ -92,4 +128,25 @@ func TestTermTaxonomyelationship(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("term taxonomy:", len(termTax))
+}
+
+func TestPublishPosts(t *testing.T) {
+	posts, err := GetPublishPosts()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("posts len:", len(posts))
+	post, err := GetPublishPost(posts[0].Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("post find:", post.Name, post.Title)
+}
+
+func TestRecentPublishPosts(t *testing.T) {
+	posts, err := GetRecentPublishPosts(0, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("post find:", len(posts))
 }
